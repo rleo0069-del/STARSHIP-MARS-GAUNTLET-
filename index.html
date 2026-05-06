@@ -15,7 +15,7 @@
         <canvas id="game" width="800" height="600"></canvas>
         
         <div style="position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-size:17px; pointer-events:none;">
-            <div>TIME: <span id="timer">2:00</span></div>
+            <div>TIME: <span id="timer">4:20</span></div>
             <div>SCORE: <span id="score">00000</span></div>
         </div>
         
@@ -25,7 +25,8 @@
             <button id="start-btn" style="margin-top:40px; padding:16px 55px; font-size:22px; background:#00aa00; color:white; border:none; cursor:pointer;">LAUNCH MISSION</button>
             <div style="margin-top:30px; font-size:13px;">
                 ← → or A D : Move<br>
-                SPACE : Boost Up
+                SPACE : Boost Up<br><br>
+                Survive 4 minutes 20 seconds
             </div>
             <div style="position:absolute; bottom:20px; font-size:11px; color:#666666;">
                 © L.E.O GAMES 2026
@@ -46,7 +47,7 @@
         let ship = { x: 150, y: 300, vy: 0 };
         let asteroids = [];
         let score = 0;
-        let timeLeft = 120;
+        let timeLeft = 260;           // 4 minutes 20 seconds (260 seconds)
         let gameRunning = false;
         let keys = {};
         let lastSpawn = 0;
@@ -55,7 +56,7 @@
             ship = { x: 150, y: 300, vy: 0 };
             asteroids = [];
             score = 0;
-            timeLeft = 120;
+            timeLeft = 260;
             lastSpawn = Date.now();
         }
         
@@ -63,22 +64,22 @@
             asteroids.push({
                 x: 850,
                 y: Math.random() * 550,
-                size: Math.random() * 40 + 25,
-                speed: 4 + Math.random() * 2
+                size: Math.random() * 38 + 22,
+                speed: 2.8 + Math.random() * 1.5   // Slower speed
             });
         }
         
         function update() {
             if (!gameRunning) return;
             
-            // Ship movement
-            ship.vy += 0.35;                    // gravity
-            if (keys[' '] || keys['Spacebar']) ship.vy -= 0.9;  // boost
+            // Ship movement (smoother)
+            ship.vy += 0.28;
+            if (keys[' '] || keys['Spacebar']) ship.vy -= 0.75;
             ship.y += ship.vy;
             ship.y = Math.max(30, Math.min(570, ship.y));
             
-            // Spawn asteroids
-            if (Date.now() - lastSpawn > 500) {
+            // Spawn asteroids (slower spawn rate)
+            if (Date.now() - lastSpawn > 650) {
                 spawnAsteroid();
                 lastSpawn = Date.now();
             }
@@ -105,7 +106,7 @@
                 return;
             }
             
-            score = Math.floor((120 - timeLeft) * 40);
+            score = Math.floor((260 - timeLeft) * 35);
             
             document.getElementById('timer').textContent = Math.ceil(timeLeft) + 's';
             document.getElementById('score').textContent = score.toString().padStart(5, '0');
@@ -121,7 +122,7 @@
                 ctx.fillRect((i * 47) % 800, (i * 31) % 600, 2, 2);
             }
             
-            // Draw ship (simple but clear)
+            // Ship
             ctx.fillStyle = '#cccccc';
             ctx.fillRect(ship.x, ship.y - 12, 50, 24);
             ctx.fillStyle = '#ff8800';
@@ -162,7 +163,7 @@
             document.getElementById('game-over-screen').style.display = 'flex';
         }
         
-        // KEYBOARD CONTROLS (This is the important part!)
+        // KEYBOARD CONTROLS
         window.addEventListener('keydown', e => {
             keys[e.key] = true;
         });
@@ -177,7 +178,7 @@
             startGame();
         });
         
-        console.log('%c[Starship Mars Gauntlet] Controls fixed!', 'color:#00ddff');
+        console.log('%c[Starship Mars Gauntlet] Fixed + 4:20 timer ready!', 'color:#00ddff');
     </script>
 </body>
 </html>

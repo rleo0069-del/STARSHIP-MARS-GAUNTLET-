@@ -32,12 +32,12 @@
             <div>SCORE: <span id="score">00000</span></div>
         </div>
         
-        <div id="start-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,20,0.95); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:10;">
+        <div id="start-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,20,0.95); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <h1 style="font-size:42px; color:#FF0000;">STARSHIP</h1>
             <h1 style="font-size:36px; color:#ffaa00; margin-top:-10px;">MARS GAUNTLET</h1>
-            <button id="start-btn" style="margin-top:40px; padding:16px 55px; font-size:22px; background:#cc0000; color:white; border:none; cursor:pointer;">LAUNCH THE MISSION</button>
+            <button id="start-btn" style="margin-top:40px; padding:16px 55px; font-size:22px; background:#cc0000; color:white; border:none; cursor:pointer;">LAUNCH MISSION</button>
             <div style="margin-top:30px; font-size:13px;">
-                ← → or A D : Move Left/Right<br>
+                ← → or A D : Move<br>
                 SPACE : Boost Up<br><br>
                 Survive 4 minutes 20 seconds
             </div>
@@ -46,7 +46,7 @@
             </div>
         </div>
         
-        <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(40,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; z-index:10;">
+        <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(40,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <h1 style="font-size:42px; color:#ff4444;">MISSION FAILED</h1>
             <p id="final-score" style="font-size:22px; margin:15px 0;"></p>
             <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">TRY AGAIN</button>
@@ -60,7 +60,7 @@
         let ship = { x: 150, y: 300, vy: 0 };
         let asteroids = [];
         let score = 0;
-        let timeLeft = 260;           // 4:20
+        let timeLeft = 260;
         let gameRunning = false;
         let keys = {};
         let lastSpawn = 0;
@@ -88,26 +88,26 @@
             // Gravity
             ship.vy += 0.28;
             
-            // BOOST (SPACE)
-            if (keys[' '] || keys['Spacebar'] || keys['Space']) {
-                ship.vy -= 0.82;
+            // BOOST - Using e.code style for reliability
+            if (keys['Space'] || keys[' ']) {
+                ship.vy -= 0.85;
             }
             
             ship.y += ship.vy;
             ship.y = Math.max(30, Math.min(570, ship.y));
             
-            // Left / Right movement - using key code for reliability
+            // Left / Right
             if (keys['ArrowLeft'] || keys['a'] || keys['A']) ship.x -= 5;
             if (keys['ArrowRight'] || keys['d'] || keys['D']) ship.x += 5;
             ship.x = Math.max(20, Math.min(720, ship.x));
             
-            // Spawn asteroids
+            // Spawn
             if (Date.now() - lastSpawn > 650) {
                 spawnAsteroid();
                 lastSpawn = Date.now();
             }
             
-            // Move asteroids + collision
+            // Asteroids
             for (let i = asteroids.length - 1; i >= 0; i--) {
                 const a = asteroids[i];
                 a.x -= a.speed;
@@ -120,12 +120,8 @@
                 if (a.x < -50) asteroids.splice(i, 1);
             }
             
-            // Timer
             timeLeft -= 1/60;
-            if (timeLeft <= 0) {
-                winGame();
-                return;
-            }
+            if (timeLeft <= 0) { winGame(); return; }
             
             score = Math.floor((260 - timeLeft) * 35);
             
@@ -137,19 +133,16 @@
             ctx.fillStyle = '#000011';
             ctx.fillRect(0, 0, 800, 600);
             
-            // Stars
             ctx.fillStyle = '#ffffff';
             for (let i = 0; i < 80; i++) {
                 ctx.fillRect((i * 47) % 800, (i * 31) % 600, 2, 2);
             }
             
-            // Ship
             ctx.fillStyle = '#cccccc';
             ctx.fillRect(ship.x, ship.y - 12, 50, 24);
             ctx.fillStyle = '#ff8800';
             ctx.fillRect(ship.x - 8, ship.y - 6, 12, 12);
             
-            // Asteroids
             ctx.fillStyle = '#555555';
             for (let a of asteroids) {
                 ctx.beginPath();
@@ -184,25 +177,14 @@
             document.getElementById('game-over-screen').style.display = 'flex';
         }
         
-        // Keyboard Controls - Fixed with event.code
+        // KEYBOARD - Using e.code for reliability
         window.addEventListener('keydown', e => {
-            // Handle arrow keys and character keys
-            if (e.code === 'ArrowLeft') keys['ArrowLeft'] = true;
-            if (e.code === 'ArrowRight') keys['ArrowRight'] = true;
-            if (e.key.toLowerCase() === 'a') keys['a'] = true;
-            if (e.key.toLowerCase() === 'd') keys['d'] = true;
-            if (e.code === 'Space') {
-                keys[' '] = true;
-                e.preventDefault();
-            }
+            keys[e.code] = true;     // ← This is the key fix
+            if (e.code === 'Space') e.preventDefault();
         });
         
         window.addEventListener('keyup', e => {
-            if (e.code === 'ArrowLeft') keys['ArrowLeft'] = false;
-            if (e.code === 'ArrowRight') keys['ArrowRight'] = false;
-            if (e.key.toLowerCase() === 'a') keys['a'] = false;
-            if (e.key.toLowerCase() === 'd') keys['d'] = false;
-            if (e.code === 'Space') keys[' '] = false;
+            keys[e.code] = false;
         });
         
         document.getElementById('start-btn').addEventListener('click', startGame);
@@ -211,7 +193,7 @@
             startGame();
         });
         
-        console.log('%cStarship Mars Gauntlet - Arrow keys FIXED!', 'color:#00ff00');
+        console.log('%cStarship Mars Gauntlet - Final Fixed Version', 'color:#ff0000');
     </script>
 </body>
 </html>

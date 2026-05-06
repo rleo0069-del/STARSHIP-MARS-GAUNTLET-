@@ -6,6 +6,7 @@
     <title>Starship: Mars Gauntlet</title>
     <link rel="icon" href="https://em-content.zobj.net/source/twitter/376/rose_1f339.png" type="image/png">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         body { margin:0; background:#000011; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family: 'Press Start 2P', cursive; color:white; }
         canvas { border: 4px solid #990000; box-shadow: 0 0 40px #CC0000; }
     </style>
@@ -22,7 +23,7 @@
         <div id="start-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,20,0.95); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <h1 style="font-size:42px; color:#FF0000;">STARSHIP</h1>
             <h1 style="font-size:36px; color:#ffaa00; margin-top:-10px;">MARS GAUNTLET</h1>
-            <button id="start-btn" style="margin-top:40px; padding:16px 55px; font-size:22px; background:#00aa00; color:white; border:none; cursor:pointer;">LAUNCH YOUR MISSION</button>
+            <button id="start-btn" style="margin-top:40px; padding:16px 55px; font-size:22px; background:#cc0000; color:white; border:none; cursor:pointer;">LAUNCH MISSION</button>
             <div style="margin-top:30px; font-size:13px;">
                 ← → or A D : Move<br>
                 SPACE : Boost Up<br><br>
@@ -34,9 +35,9 @@
         </div>
         
         <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(40,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-            <h1 style="font-size:42px; color:#ff4444;">MISSION FAILED THIS TIME</h1>
+            <h1 style="font-size:42px; color:#ff4444;">MISSION FAILED</h1>
             <p id="final-score" style="font-size:22px; margin:15px 0;"></p>
-            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">DARE TO TRY AGAIN</button>
+            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">TRY AGAIN</button>
         </div>
     </div>
 
@@ -47,7 +48,7 @@
         let ship = { x: 150, y: 300, vy: 0 };
         let asteroids = [];
         let score = 0;
-        let timeLeft = 260;           // 4 minutes 20 seconds (260 seconds)
+        let timeLeft = 260;           // 4:20
         let gameRunning = false;
         let keys = {};
         let lastSpawn = 0;
@@ -65,20 +66,20 @@
                 x: 850,
                 y: Math.random() * 550,
                 size: Math.random() * 38 + 22,
-                speed: 2.8 + Math.random() * 1.5   // Slower speed
+                speed: 2.8 + Math.random() * 1.5
             });
         }
         
         function update() {
             if (!gameRunning) return;
             
-            // Ship movement (smoother)
-            ship.vy += 0.28;
-            if (keys[' '] || keys['Spacebar']) ship.vy -= 0.75;
+            // Ship movement
+            ship.vy += 0.28;                          // gravity
+            if (keys[' '] || keys['Spacebar'] || keys['Space']) ship.vy -= 0.75;  // BOOST
             ship.y += ship.vy;
             ship.y = Math.max(30, Math.min(570, ship.y));
             
-            // Spawn asteroids (slower spawn rate)
+            // Spawn asteroids
             if (Date.now() - lastSpawn > 650) {
                 spawnAsteroid();
                 lastSpawn = Date.now();
@@ -95,7 +96,6 @@
                     endGame();
                     return;
                 }
-                
                 if (a.x < -50) asteroids.splice(i, 1);
             }
             
@@ -159,11 +159,11 @@
         
         function winGame() {
             gameRunning = false;
-            document.getElementById('final-score').innerHTML = `🎉 YOU REACHED MARS! 🎉<br>FINAL SCORE: ${score}`;
+            document.getElementById('final-score').innerHTML = `🎉 WOW YOU REACHED MARS! 🎉<br>FINAL SCORE: ${score}`;
             document.getElementById('game-over-screen').style.display = 'flex';
         }
         
-        // KEYBOARD CONTROLS
+        // KEYBOARD CONTROLS (this is the important part)
         window.addEventListener('keydown', e => {
             keys[e.key] = true;
         });
@@ -178,7 +178,7 @@
             startGame();
         });
         
-        console.log('%c[Starship Mars Gauntlet] Fixed + 4:20 timer ready!', 'color:#00ddff');
+        console.log('%c[Starship Mars Gauntlet] Fixed version loaded!', 'color:#ff0000');
     </script>
 </body>
 </html>

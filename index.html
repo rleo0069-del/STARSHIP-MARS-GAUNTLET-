@@ -285,7 +285,7 @@
         }
         
         function startGame() {
-            console.log("Start button clicked!"); // Debug line
+            console.log("Start button clicked!");
             document.getElementById('start-screen').style.display = 'none';
             resetGame();
             gameRunning = true;
@@ -309,46 +309,21 @@
         window.addEventListener('keydown', e => keys[e.key] = true);
         window.addEventListener('keyup', e => keys[e.key] = false);
         
-        // Make sure button is properly attached
-        const startBtn = document.getElementById('start-btn');
-        if (startBtn) {
-            startBtn.addEventListener('click', startGame);
-            console.log("Start button found and attached");
-        } else {
-            console.error("Start button not found!");
-        }
-        
+        // Button
+        document.getElementById('start-btn').addEventListener('click', startGame);
         document.getElementById('restart-btn').addEventListener('click', () => {
             document.getElementById('game-over-screen').style.display = 'none';
             startGame();
         });
         
-        // Touch support
+        // Touch
         canvas.addEventListener('touchstart', e => {
             e.preventDefault();
             if (!gameRunning) return;
             if (!hammerSwing) { hammerSwing = true; swingTimer = 14; }
         });
         
-        console.log('%c[Starship Mars Gauntlet] Fixed version loaded!', 'color:#00ddff');
+        console.log('%c[Starship Mars Gauntlet] Clean version loaded!', 'color:#00ddff');
     </script>
 </body>
 </html>
-        <!-- Start Screen -->
-        <div id="start-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,20,0.95); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-            <h1 style="font-size:42px; color:#00ddff; text-shadow:0 0 30px #00aaff;">STARSHIP</h1>
-            <h1 style="font-size:36px; color:#ffaa00; margin-top:-10px;">MARS GAUNTLET</h1>
-            
-            <button id="start-btn" style="margin-top:35px; padding:16px 55px; font-size:22px; background:#00aa00; color:white; border:none; cursor:pointer;">LAUNCH MISSION</button>
-            
-            <div style="margin-top:25px; font-size:13px; line-height:1.6;">
-                ← → or A D : Move<br>
-                SPACE / TAP : Boost Up<br><br>
-                Collect power-ups • Survive 2 minutes
-            </div>
-            
-            <!-- L.E.O GAMES + Copyright -->
-            <div style="position:absolute; bottom:25px; font-size:12px; color:#888888;">
-                © L.E.O GAMES 2026
-            </div>
-        </div>

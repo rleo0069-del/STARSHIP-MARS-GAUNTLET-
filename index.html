@@ -48,7 +48,7 @@
         let ship = { x: 150, y: 300, vy: 0 };
         let asteroids = [];
         let score = 0;
-        let timeLeft = 260;           // 4:20
+        let timeLeft = 260;
         let gameRunning = false;
         let keys = {};
         let lastSpawn = 0;
@@ -74,23 +74,22 @@
             if (!gameRunning) return;
             
             // Ship movement
-            ship.vy += 0.28;                          // gravity
-            if (keys[' '] || keys['Spacebar'] || keys['Space']) ship.vy -= 0.75;  // BOOST
+            ship.vy += 0.28;                    // gravity
+            if (keys[' '] || keys['Space']) ship.vy -= 0.78;   // BOOST - improved detection
             ship.y += ship.vy;
             ship.y = Math.max(30, Math.min(570, ship.y));
             
-            // Spawn asteroids
+            // Spawn
             if (Date.now() - lastSpawn > 650) {
                 spawnAsteroid();
                 lastSpawn = Date.now();
             }
             
-            // Move asteroids
+            // Asteroids
             for (let i = asteroids.length - 1; i >= 0; i--) {
                 const a = asteroids[i];
                 a.x -= a.speed;
                 
-                // Collision
                 if (a.x < ship.x + 50 && a.x + a.size > ship.x &&
                     a.y < ship.y + 20 && a.y + a.size > ship.y - 20) {
                     endGame();
@@ -99,12 +98,8 @@
                 if (a.x < -50) asteroids.splice(i, 1);
             }
             
-            // Timer
             timeLeft -= 1/60;
-            if (timeLeft <= 0) {
-                winGame();
-                return;
-            }
+            if (timeLeft <= 0) { winGame(); return; }
             
             score = Math.floor((260 - timeLeft) * 35);
             
@@ -116,7 +111,6 @@
             ctx.fillStyle = '#000011';
             ctx.fillRect(0, 0, 800, 600);
             
-            // Stars
             ctx.fillStyle = '#ffffff';
             for (let i = 0; i < 80; i++) {
                 ctx.fillRect((i * 47) % 800, (i * 31) % 600, 2, 2);
@@ -159,13 +153,16 @@
         
         function winGame() {
             gameRunning = false;
-            document.getElementById('final-score').innerHTML = `🎉 WOW YOU REACHED MARS! 🎉<br>FINAL SCORE: ${score}`;
+            document.getElementById('final-score').innerHTML = `🎉 YOU REACHED MARS! 🎉<br>FINAL SCORE: ${score}`;
             document.getElementById('game-over-screen').style.display = 'flex';
         }
         
-        // KEYBOARD CONTROLS (this is the important part)
+        // ==================== FIXED KEYBOARD ====================
         window.addEventListener('keydown', e => {
             keys[e.key] = true;
+            if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();   // Prevent page scrolling
+            }
         });
         
         window.addEventListener('keyup', e => {
@@ -178,7 +175,7 @@
             startGame();
         });
         
-        console.log('%c[Starship Mars Gauntlet] Fixed version loaded!', 'color:#ff0000');
+        console.log('%cStarship Mars Gauntlet - Keyboard fixed!', 'color:#ff0000');
     </script>
 </body>
 </html>

@@ -6,6 +6,7 @@
     <title>Starship: Mars Gauntlet</title>
     <link rel="icon" href="https://em-content.zobj.net/source/twitter/376/rose_1f339.png" type="image/png">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         body { margin:0; background:#000011; display:flex; justify-content:center; align-items:center; min-height:100vh; font-family: 'Press Start 2P', cursive; color:white; }
         canvas { border: 4px solid #00aaff; box-shadow: 0 0 40px #00aaff; }
         #ui { position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-size:17px; pointer-events:none; }
@@ -20,15 +21,27 @@
             <div>SCORE: <span id="score">00000</span> <span id="multiplier" style="color:#ffdd00;"></span></div>
         </div>
         
-        <!-- Start Screen -->
-        <div id="start-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,20,0.95); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
-            <h1 style="font-size:42px; color:#00ddff; text-shadow:0 0 30px #00aaff;">STARSHIP</h1>
-            <h1 style="font-size:36px; color:#ffaa00; margin-top:-10px;">MARS GAUNTLET</h1>
-            <button id="start-btn" style="margin-top:40px; padding:15px 50px; font-size:22px; background:#00aa00; color:white; border:none; cursor:pointer;">LAUNCH MISSION</button>
-            <div style="margin-top:30px; font-size:13px; line-height:1.6;">
-                ← → or A D : Move<br>
-                SPACE / TAP : Boost Up<br><br>
-                Collect power-ups • Survive 2 minutes
+        <!-- START SCREEN -->
+        <div id="start-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,20,0.97); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:20px; box-sizing:border-box;">
+            
+            <h1 style="font-size:38px; color:#00ddff; text-shadow:0 0 30px #00aaff; margin-bottom:8px;">STARSHIP</h1>
+            <h1 style="font-size:32px; color:#ffaa00; margin-top:-8px; margin-bottom:20px;">MARS GAUNTLET</h1>
+            
+            <div style="max-width:620px; font-size:13px; line-height:1.55; color:#cccccc; margin-bottom:25px; text-align:left;">
+                <strong style="color:#ffaa00;">"Two minutes. One life. No second chances."</strong><br><br>
+                You are the commander of SpaceX’s most advanced Starship ever built. Your mission: deliver humanity’s first permanent colony to Mars.<br><br>
+                But the journey is anything but safe.<br><br>
+                You must fly horizontally at breakneck speed through an ever-growing asteroid field. What starts as a few scattered rocks quickly turns into a deadly storm of debris. With only one life and a strict 2-minute window, every second counts.<br><br>
+                Tap or press SPACE to fire your powerful thrusters and climb. Release to let gravity pull you back down. Thread the needle between massive asteroids, dodge fast-moving debris, and keep your ship in one piece.<br><br>
+                Survive the full 120 seconds and the red planet will finally appear on the horizon — proof that you made it.<br><br>
+                <strong style="color:#ff6666;">Fail, and your mission ends in fire and silence.</strong><br><br>
+                The clock is ticking. Mars is waiting. Are you ready to make history?
+            </div>
+            
+            <button id="start-btn" style="padding:16px 55px; font-size:20px; background:#00aa00; color:white; border:none; cursor:pointer;">LAUNCH MISSION</button>
+            
+            <div style="position:absolute; bottom:20px; font-size:11px; color:#666666;">
+                © L.E.O GAMES 2026
             </div>
         </div>
         
@@ -54,7 +67,6 @@
         let lastSpawn = 0;
         let difficulty = 1;
         
-        // Power-up states
         let shieldActive = false;
         let slowMoActive = false;
         let multiplierActive = false;
@@ -81,8 +93,7 @@
                 x: 850,
                 y: Math.random() * (600 - size),
                 size: size,
-                speed: (3.2 + difficulty * 0.9) * (slowMoActive ? 0.4 : 1),
-                type: Math.random() < 0.35 ? 'fast' : 'normal'
+                speed: (3.2 + difficulty * 0.9) * (slowMoActive ? 0.4 : 1)
             });
         }
         
@@ -98,7 +109,7 @@
             });
         }
         
-        function createExplosion(x, y, count = 60) {
+        function createExplosion(x, y, count = 70) {
             for (let i = 0; i < count; i++) {
                 particles.push({
                     x: x,
@@ -115,13 +126,11 @@
         function update() {
             if (!gameRunning) return;
             
-            // Ship physics
             ship.vy += 0.32;
             if (keys[' '] || keys['Spacebar']) ship.vy -= 0.85;
             ship.y += ship.vy;
             ship.y = Math.max(25, Math.min(575, ship.y));
             
-            // Spawn asteroids + power-ups
             if (Date.now() - lastSpawn > 380 - difficulty * 60) {
                 spawnAsteroid();
                 if (Math.random() < 0.35) spawnAsteroid();
@@ -129,67 +138,42 @@
                 lastSpawn = Date.now();
             }
             
-            // Move asteroids
             for (let i = asteroids.length - 1; i >= 0; i--) {
                 const a = asteroids[i];
                 a.x -= a.speed;
                 
-                // Collision check
                 if (!shieldActive && a.x < ship.x + 52 && a.x + a.size > ship.x - 8 &&
                     a.y < ship.y + 18 && a.y + a.size > ship.y - 18) {
-                    createExplosion(ship.x + 25, ship.y + 10, 70);
+                    createExplosion(ship.x + 25, ship.y + 10, 75);
                     endGame();
                     return;
                 }
-                
                 if (a.x < -60) asteroids.splice(i, 1);
             }
             
-            // Move power-ups
             for (let i = powerups.length - 1; i >= 0; i--) {
                 const p = powerups[i];
                 p.x -= p.speed;
                 
-                // Collect power-up
                 if (p.x < ship.x + 55 && p.x + p.size > ship.x - 5 &&
                     p.y < ship.y + 20 && p.y + p.size > ship.y - 20) {
                     
-                    if (p.type === 'shield') {
-                        shieldActive = true;
-                        setTimeout(() => shieldActive = false, 5500);
-                    }
-                    if (p.type === 'slowmo') {
-                        slowMoActive = true;
-                        setTimeout(() => slowMoActive = false, 6500);
-                    }
-                    if (p.type === 'multiplier') {
-                        multiplierActive = true;
-                        multiplierValue = 2;
-                        setTimeout(() => { multiplierActive = false; multiplierValue = 1; }, 8000);
-                    }
+                    if (p.type === 'shield') { shieldActive = true; setTimeout(() => shieldActive = false, 5500); }
+                    if (p.type === 'slowmo') { slowMoActive = true; setTimeout(() => slowMoActive = false, 6500); }
+                    if (p.type === 'multiplier') { multiplierActive = true; multiplierValue = 2; setTimeout(() => { multiplierActive = false; multiplierValue = 1; }, 8000); }
                     powerups.splice(i, 1);
                 }
-                
                 if (p.x < -40) powerups.splice(i, 1);
             }
             
-            // Particles
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.12;
-                p.life--;
-                p.size *= 0.96;
+                p.x += p.vx; p.y += p.vy; p.vy += 0.12; p.life--; p.size *= 0.96;
                 if (p.life <= 0) particles.splice(i, 1);
             }
             
-            // Timer & difficulty
             timeLeft -= 1/60;
-            if (timeLeft <= 0) {
-                winGame();
-                return;
-            }
+            if (timeLeft <= 0) { winGame(); return; }
             
             if (timeLeft < 90 && difficulty < 2) difficulty = 2;
             if (timeLeft < 60 && difficulty < 3) difficulty = 3;
@@ -197,7 +181,6 @@
             
             score += Math.floor(1 * multiplierValue);
             
-            // Update UI
             document.getElementById('timer').textContent = Math.ceil(timeLeft) + 's';
             document.getElementById('score').textContent = score.toString().padStart(5, '0');
             document.getElementById('multiplier').textContent = multiplierActive ? `x${multiplierValue}` : '';
@@ -207,11 +190,9 @@
             const x = ship.x;
             const y = ship.y;
             
-            // Main body (silver)
             ctx.fillStyle = '#c8c8c8';
             ctx.fillRect(x + 5, y - 14, 52, 28);
             
-            // Black nose cone
             ctx.fillStyle = '#222222';
             ctx.beginPath();
             ctx.moveTo(x + 57, y - 14);
@@ -219,22 +200,18 @@
             ctx.lineTo(x + 57, y + 14);
             ctx.fill();
             
-            // Windows
             ctx.fillStyle = '#00aaff';
             ctx.fillRect(x + 20, y - 6, 6, 12);
             ctx.fillRect(x + 35, y - 6, 6, 12);
             
-            // Fins
             ctx.fillStyle = '#444444';
             ctx.fillRect(x + 8, y - 22, 12, 8);
             ctx.fillRect(x + 8, y + 14, 12, 8);
             
-            // Engines
             ctx.fillStyle = '#333333';
             ctx.fillRect(x - 5, y - 10, 12, 8);
             ctx.fillRect(x - 5, y + 2, 12, 8);
             
-            // Engine flames
             ctx.fillStyle = shieldActive ? '#00ffaa' : '#ff8800';
             ctx.fillRect(x - 18, y - 8, 14, 4);
             ctx.fillRect(x - 18, y + 4, 14, 4);
@@ -252,16 +229,13 @@
             ctx.fillStyle = '#000011';
             ctx.fillRect(0, 0, 800, 600);
             
-            // Stars
             ctx.fillStyle = '#ffffff';
             for (let i = 0; i < 90; i++) {
                 ctx.fillRect((i * 47) % 800, (i * 31) % 600, 2, 2);
             }
             
-            // Draw ship
             drawStarship();
             
-            // Asteroids
             ctx.fillStyle = '#555555';
             for (let a of asteroids) {
                 ctx.beginPath();
@@ -272,12 +246,10 @@
                 ctx.stroke();
             }
             
-            // Power-ups
             for (let p of powerups) {
                 if (p.type === 'shield') ctx.fillStyle = '#00aaff';
                 if (p.type === 'slowmo') ctx.fillStyle = '#aa44ff';
                 if (p.type === 'multiplier') ctx.fillStyle = '#ffdd00';
-                
                 ctx.beginPath();
                 ctx.arc(p.x + 11, p.y + 11, 11, 0, Math.PI * 2);
                 ctx.fill();
@@ -286,7 +258,6 @@
                 ctx.stroke();
             }
             
-            // Particles
             for (let p of particles) {
                 ctx.globalAlpha = p.life / 40;
                 ctx.fillStyle = p.color;
@@ -294,7 +265,6 @@
             }
             ctx.globalAlpha = 1;
             
-            // Mars (appears near the end)
             if (timeLeft < 35) {
                 ctx.fillStyle = '#cc4422';
                 ctx.beginPath();
@@ -315,6 +285,7 @@
         }
         
         function startGame() {
+            console.log("Start button clicked!"); // Debug line
             document.getElementById('start-screen').style.display = 'none';
             resetGame();
             gameRunning = true;
@@ -324,18 +295,6 @@
         function endGame() {
             gameRunning = false;
             createExplosion(ship.x + 25, ship.y + 10, 80);
-            
-            // Screen shake
-            const container = document.getElementById('game-container') || canvas.parentElement;
-            if (container) {
-                container.style.transition = 'transform 0.1s';
-                container.style.transform = 'translate(8px, 8px)';
-                setTimeout(() => {
-                    container.style.transform = 'translate(-6px, -6px)';
-                    setTimeout(() => container.style.transform = 'translate(0,0)', 120);
-                }, 100);
-            }
-            
             document.getElementById('final-score').innerHTML = `FINAL SCORE: ${score}<br>You didn't make it...`;
             document.getElementById('game-over-screen').style.display = 'flex';
         }
@@ -350,7 +309,15 @@
         window.addEventListener('keydown', e => keys[e.key] = true);
         window.addEventListener('keyup', e => keys[e.key] = false);
         
-        document.getElementById('start-btn').addEventListener('click', startGame);
+        // Make sure button is properly attached
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', startGame);
+            console.log("Start button found and attached");
+        } else {
+            console.error("Start button not found!");
+        }
+        
         document.getElementById('restart-btn').addEventListener('click', () => {
             document.getElementById('game-over-screen').style.display = 'none';
             startGame();
@@ -360,22 +327,10 @@
         canvas.addEventListener('touchstart', e => {
             e.preventDefault();
             if (!gameRunning) return;
-            if (!hammerSwing) {
-                hammerSwing = true;
-                swingTimer = 14;
-            }
+            if (!hammerSwing) { hammerSwing = true; swingTimer = 14; }
         });
         
-        canvas.addEventListener('touchmove', e => {
-            e.preventDefault();
-            if (!gameRunning) return;
-            const currentX = e.changedTouches[0].screenX;
-            // Simple swipe movement
-            if (currentX < 300) playerX = Math.max(20, playerX - 6);
-            else playerX = Math.min(680, playerX + 6);
-        });
-        
-        console.log('%c[Starship Mars Gauntlet] Full version ready!', 'color:#00ddff');
+        console.log('%c[Starship Mars Gauntlet] Fixed version loaded!', 'color:#00ddff');
     </script>
 </body>
 </html>

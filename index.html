@@ -43,11 +43,11 @@
             </div>
         </div>
 
-        <!-- Game Over -->
-        <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(40,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center;">
+        <!-- Game Over / Win Screen -->
+        <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(40,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <h1 id="game-result" style="font-size:42px;"></h1>
-            <p id="final-score" style="font-size:22px;"></p>
-            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">TRY YOUR MISSION AGAIN</button>
+            <p id="final-score" style="font-size:22px; margin:10px 0;"></p>
+            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">DARE TO LANUCH AGAIN</button>
         </div>
 
         <!-- Mobile Controls -->
@@ -66,65 +66,90 @@
         let ship = { x: 150, y: 300, width: 52, height: 36 };
         let asteroids = [];
         let particles = [];
+        let confetti = [];
         let score = 0, highScore = localStorage.getItem('starshipHigh') || 0;
         let timeLeft = 260;
         let gameRunning = false;
         let keys = {};
         let lastSpawn = 0;
         let difficulty = 1;
+        let isWin = false;
 
         document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
 
-        // Simple Audio
+        // Audio
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(freq, duration, type = 'sawtooth', vol = 0.3) {
-            const osc = audioCtx.createOscillator();
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.value = vol;
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                setTimeout(() => osc.stop(), duration);
+            } catch(e) {}
+        }
+
+        let thrustSound = null;
+        function startThrustSound() {
+            if (thrustSound) return;
+            thrustSound = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.value = vol;
-            osc.connect(gain).connect(audioCtx.destination);
-            osc.start();
-            setTimeout(() => osc.stop(), duration);
+            thrustSound.type = 'sawtooth';
+            thrustSound.frequency.setValueAtTime(180, audioCtx.currentTime);
+            gain.gain.value = 0.15;
+            thrustSound.connect(gain).connect(audioCtx.destination);
+            thrustSound.start();
+        }
+        function stopThrustSound() {
+            if (thrustSound) { thrustSound.stop(); thrustSound = null; }
         }
 
         function resetGame() {
             ship.x = 150; ship.y = 300;
-            asteroids = []; particles = [];
+            asteroids = []; particles = []; confetti = [];
             score = 0; timeLeft = 260; difficulty = 1;
+            isWin = false;
             lastSpawn = Date.now();
         }
 
         function spawnAsteroid() {
             const type = Math.random();
             let size, speed, spin = 0;
-            if (type < 0.4) { // big slow
-                size = 55; speed = 2.2;
-            } else if (type < 0.7) { // small fast
-                size = 22; speed = 5.5;
-            } else { // normal spinning
-                size = 38; speed = 3.8; spin = (Math.random() - 0.5) * 0.15;
-            }
+            if (type < 0.4) { size = 55; speed = 2.2; }
+            else if (type < 0.7) { size = 22; speed = 5.5; }
+            else { size = 38; speed = 3.8; spin = (Math.random() - 0.5) * 0.15; }
             asteroids.push({ x: 850, y: Math.random() * 500 + 50, size, speed: speed * difficulty, spin, angle: 0 });
         }
 
         function createExplosion(x, y) {
             for (let i = 0; i < 35; i++) {
-                particles.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 12,
-                    vy: (Math.random() - 0.5) * 12,
-                    life: 45,
-                    color: Math.random() > 0.5 ? '#ff8800' : '#ffff00'
-                });
+                particles.push({ x, y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 45, color: Math.random()>0.5?'#ff8800':'#ffff00' });
             }
             playSound(120, 600, 'sawtooth', 0.6);
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 180; i++) {
+                confetti.push({
+                    x: Math.random() * 800,
+                    y: Math.random() * -200,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: Math.random() * 6 + 3,
+                    size: Math.random() * 9 + 6,
+                    color: ['#ff0000','#00ff00','#ffff00','#00ffff','#ff00ff'][Math.floor(Math.random()*5)],
+                    rotation: Math.random() * 360,
+                    rotSpeed: (Math.random() - 0.5) * 12
+                });
+            }
         }
 
         function update() {
             if (!gameRunning) return;
 
-            const speed = 4.8; // slower & smoother
+            const speed = 4.8;
 
             if (keys['KeyX']) ship.y -= speed;
             if (keys['KeyZ']) ship.y += speed;
@@ -134,20 +159,19 @@
             ship.x = Math.max(20, Math.min(680, ship.x));
             ship.y = Math.max(40, Math.min(560, ship.y));
 
-            // Spawn
+            if (keys['Space'] || keys['KeyX'] || keys['KeyZ'] || keys['KeyQ']) startThrustSound();
+            else stopThrustSound();
+
             if (Date.now() - lastSpawn > (620 / difficulty)) {
                 spawnAsteroid();
                 if (Math.random() < 0.4) spawnAsteroid();
                 lastSpawn = Date.now();
             }
 
-            // Asteroids
             for (let i = asteroids.length - 1; i >= 0; i--) {
                 const a = asteroids[i];
                 a.x -= a.speed;
                 a.angle += a.spin || 0;
-
-                // Collision
                 if (a.x < ship.x + ship.width && a.x + a.size > ship.x &&
                     a.y < ship.y + ship.height && a.y + a.size > ship.y) {
                     createExplosion(ship.x + 25, ship.y + 18);
@@ -157,18 +181,27 @@
                 if (a.x < -80) asteroids.splice(i, 1);
             }
 
-            // Particles
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                p.life--; p.vx *= 0.96; p.vy *= 0.96;
+                p.x += p.vx; p.y += p.vy; p.life--; p.vx *= 0.96; p.vy *= 0.96;
                 if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            for (let i = confetti.length - 1; i >= 0; i--) {
+                const c = confetti[i];
+                c.x += c.vx; c.y += c.vy; c.rotation += c.rotSpeed;
+                c.vy += 0.18;
+                if (c.y > 650) confetti.splice(i, 1);
             }
 
             timeLeft -= 1/60;
             difficulty = 1 + (260 - timeLeft) / 130;
 
-            if (timeLeft <= 0) { winGame(); return; }
+            if (timeLeft <= 0 && !isWin) { 
+                isWin = true;
+                winGame(); 
+                return; 
+            }
 
             score = Math.floor((260 - timeLeft) * 52);
             document.getElementById('timer').textContent = Math.ceil(timeLeft) + 's';
@@ -187,54 +220,47 @@
                 ctx.fillRect(x, y, 1.5, 1.5);
             }
 
-            // Ship (better looking)
+            // Ship
             ctx.save();
             ctx.translate(ship.x + 26, ship.y + 18);
-            
-            // Wings
-            ctx.fillStyle = '#888';
-            ctx.beginPath(); ctx.moveTo(-22, -18); ctx.lineTo(-8, 0); ctx.lineTo(-22, 18); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(-22, -18); ctx.lineTo(10, 0); ctx.lineTo(-22, 18); ctx.fill();
-            
-            // Body
-            ctx.fillStyle = '#cccccc';
-            ctx.fillRect(-24, -10, 48, 20);
-            
-            // Cockpit
-            ctx.fillStyle = '#66ddff';
-            ctx.fillRect(8, -8, 14, 16);
-            
-            // Thruster flame
+            ctx.fillStyle = '#888'; ctx.beginPath(); ctx.moveTo(-22,-18); ctx.lineTo(-8,0); ctx.lineTo(-22,18); ctx.fill();
+            ctx.fillStyle = '#cccccc'; ctx.fillRect(-24, -10, 48, 20);
+            ctx.fillStyle = '#66ddff'; ctx.fillRect(8, -8, 14, 16);
             if (keys['Space'] || keys['KeyX'] || keys['KeyZ'] || keys['KeyQ']) {
-                ctx.fillStyle = '#ff4400';
-                ctx.fillRect(-32, -7, 12, 14);
-                ctx.fillStyle = '#ffff00';
-                ctx.fillRect(-36, -4, 8, 8);
+                ctx.fillStyle = '#ff4400'; ctx.fillRect(-32, -7, 12, 14);
+                ctx.fillStyle = '#ffff00'; ctx.fillRect(-36, -4, 8, 8);
             }
             ctx.restore();
 
             // Asteroids
-            ctx.strokeStyle = '#555';
-            ctx.lineWidth = 5;
+            ctx.strokeStyle = '#555'; ctx.lineWidth = 5;
             for (let a of asteroids) {
                 ctx.save();
                 ctx.translate(a.x + a.size/2, a.y + a.size/2);
                 ctx.rotate(a.angle);
                 ctx.fillStyle = '#777';
-                ctx.beginPath();
-                ctx.arc(0, 0, a.size/2, 0, Math.PI*2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(0, 0, a.size/2, 0, Math.PI*2); ctx.fill();
                 ctx.stroke();
                 ctx.restore();
             }
 
-            // Explosion particles
+            // Particles
             for (let p of particles) {
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.life / 45;
                 ctx.fillRect(p.x, p.y, 6, 6);
             }
             ctx.globalAlpha = 1;
+
+            // Confetti
+            for (let c of confetti) {
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.rotate(c.rotation * Math.PI / 180);
+                ctx.fillStyle = c.color;
+                ctx.fillRect(-c.size/2, -c.size/2, c.size, c.size);
+                ctx.restore();
+            }
         }
 
         function gameLoop() {
@@ -262,6 +288,7 @@
             document.getElementById('final-score').innerHTML = `SCORE: ${score}<br>HIGH: ${highScore}`;
             document.getElementById('game-over-screen').style.display = 'flex';
             playSound(80, 800, 'sawtooth', 0.5);
+            stopThrustSound();
         }
 
         function winGame() {
@@ -271,27 +298,36 @@
                 localStorage.setItem('starshipHigh', highScore);
                 document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
             }
-            document.getElementById('game-result').textContent = "🎉 MARS REACHED! 🎉";
+            createConfetti();
+            
+            document.getElementById('game-result').innerHTML = "🎉 MARS REACHED! 🏆";
             document.getElementById('game-result').style.color = "#00ff88";
-            document.getElementById('final-score').innerHTML = `FINAL SCORE: ${score}<br>NEW HIGH SCORE!`;
+            document.getElementById('final-score').innerHTML = `
+                TO THE MOON, MARS AND BEYOND!<br><br>
+                YOU ARE NOW A SPACE PIRATE 🏴‍☠️<br><br>
+                FINAL SCORE: ${score}<br>
+                HIGH SCORE: ${highScore}
+            `;
             document.getElementById('game-over-screen').style.display = 'flex';
-            playSound(600, 200); playSound(800, 300); playSound(1000, 500);
+
+            // Victory music
+            playSound(400, 150); playSound(600, 200); playSound(800, 250);
+            setTimeout(() => playSound(1000, 400), 300);
+            setTimeout(() => playSound(1200, 600), 600);
         }
 
-        // Keyboard
+        // Controls
         window.addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'Space') e.preventDefault(); });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
-        // Touch buttons
-        ['x','z','space','q'].forEach(key => {
-            const btn = document.getElementById('btn-' + key);
+        ['x','z','space','q'].forEach(k => {
+            const btn = document.getElementById('btn-' + k);
             if (btn) {
-                btn.addEventListener('touchstart', e => { e.preventDefault(); keys[key === 'space' ? 'Space' : 'Key' + key.toUpperCase()] = true; });
-                btn.addEventListener('touchend', e => { e.preventDefault(); keys[key === 'space' ? 'Space' : 'Key' + key.toUpperCase()] = false; });
+                btn.addEventListener('touchstart', e => { e.preventDefault(); keys[k === 'space' ? 'Space' : 'Key' + k.toUpperCase()] = true; });
+                btn.addEventListener('touchend', e => { e.preventDefault(); keys[k === 'space' ? 'Space' : 'Key' + k.toUpperCase()] = false; });
             }
         });
 
-        // Buttons
         document.getElementById('start-btn').addEventListener('click', startGame);
         document.getElementById('restart-btn').addEventListener('click', () => {
             document.getElementById('game-over-screen').style.display = 'none';
@@ -299,7 +335,7 @@
         });
 
         gameLoop();
-        console.log('%cStarship Mars Gauntlet — FULL UPGRADE LOADED!', 'color:#ff0000; font-size:16px');
+        console.log('%cStarship Mars Gauntlet — Victory Celebration Added!', 'color:#00ff88; font-size:16px');
     </script>
 </body>
 </html>

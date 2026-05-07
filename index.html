@@ -68,7 +68,7 @@
         let particles = [];
         let confetti = [];
         let score = 0, highScore = localStorage.getItem('starshipHigh') || 0;
-        let timeLeft = 60;           // ← Changed to 60 seconds
+        let timeLeft = 30;           // ← Changed to 30 seconds
         let gameRunning = false;
         let keys = {};
         let lastSpawn = 0;
@@ -117,7 +117,7 @@
         function resetGame() {
             ship.x = 150; ship.y = 300;
             asteroids = []; particles = []; confetti = [];
-            score = 0; timeLeft = 60; difficulty = 1;
+            score = 0; timeLeft = 30; difficulty = 1;
             isWin = false;
             lastSpawn = Date.now();
         }
@@ -126,8 +126,8 @@
             const type = Math.random();
             let size, speed, spin = 0;
             if (type < 0.4) { size = 55; speed = 2.2; }
-            else if (type < 0.7) { size = 22; speed = 5.5; }
-            else { size = 38; speed = 3.8; spin = (Math.random() - 0.5) * 0.15; }
+            else if (type < 0.7) { size = 22; speed = 4.5; }
+            else { size = 38; speed = 2.8; spin = (Math.random() - 0.5) * 0.15; }
             asteroids.push({ x: 850, y: Math.random() * 500 + 50, size, speed: speed * difficulty, spin, angle: 0 });
         }
 
@@ -200,8 +200,8 @@
                 if (c.y > 650) confetti.splice(i, 1);
             }
 
-            timeLeft -= 1/60;
-            difficulty = 1 + (60 - timeLeft) / 40;
+            timeLeft -= 1/30;
+            difficulty = 1 + (30 - timeLeft) / 40;
 
             if (timeLeft <= 0 && !isWin) { 
                 isWin = true;
@@ -209,7 +209,7 @@
                 return; 
             }
 
-            score = Math.floor((60 - timeLeft) * 58);
+            score = Math.floor((30 - timeLeft) * 28);
             document.getElementById('timer').textContent = Math.ceil(timeLeft) + 's';
             document.getElementById('score').textContent = score.toString().padStart(5, '0');
         }

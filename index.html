@@ -27,7 +27,7 @@
         <canvas id="game" width="800" height="600"></canvas>
         
         <div style="position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-size:18px; text-shadow: 0 0 10px black;">
-            <div>TIME: <span id="timer">4:20</span></div>
+            <div>TIME: <span id="timer">1:00</span></div>
             <div>SCORE: <span id="score">00000</span></div>
             <div>HIGH: <span id="highscore">00000</span></div>
         </div>
@@ -39,15 +39,15 @@
             <button id="start-btn" style="padding:18px 60px; font-size:24px; background:#cc0000; color:white; border:none; cursor:pointer;">LAUNCH YOUR MISSION</button>
             <div style="margin-top:30px; font-size:14px; line-height:1.5;">
                 X ↑ Z ↓ SPACE → Q ←<br>
-                Survive <strong>4:20</strong>
+                Survive <strong>1 minute</strong>
             </div>
         </div>
 
-        <!-- Game Over / Win Screen -->
+        <!-- Win / Game Over Screen -->
         <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(40,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <h1 id="game-result" style="font-size:42px;"></h1>
-            <p id="final-score" style="font-size:22px; margin:10px 0;"></p>
-            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">DARE TO LANUCH AGAIN</button>
+            <p id="final-score" style="font-size:22px; margin:10px 0; line-height:1.6;"></p>
+            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">DARE TO LAUNCH AGAIN</button>
         </div>
 
         <!-- Mobile Controls -->
@@ -68,7 +68,7 @@
         let particles = [];
         let confetti = [];
         let score = 0, highScore = localStorage.getItem('starshipHigh') || 0;
-        let timeLeft = 260;
+        let timeLeft = 60;           // ← Changed to 60 seconds
         let gameRunning = false;
         let keys = {};
         let lastSpawn = 0;
@@ -77,7 +77,6 @@
 
         document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
 
-        // Audio
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(freq, duration, type = 'sawtooth', vol = 0.3) {
             try {
@@ -107,10 +106,18 @@
             if (thrustSound) { thrustSound.stop(); thrustSound = null; }
         }
 
+        function getPirateRank(score) {
+            if (score > 2800) return "LEGENDARY SPACE PIRATE 🏴‍☠️👑";
+            if (score > 2200) return "MARS MARAUDER 🏴‍☠️🔥";
+            if (score > 1600) return "SPACE BUCCANEER 🏴‍☠️";
+            if (score > 1000) return "VOID RAIDER 🏴‍☠️";
+            return "ROOKIE SPACE PIRATE 🏴‍☠️";
+        }
+
         function resetGame() {
             ship.x = 150; ship.y = 300;
             asteroids = []; particles = []; confetti = [];
-            score = 0; timeLeft = 260; difficulty = 1;
+            score = 0; timeLeft = 60; difficulty = 1;
             isWin = false;
             lastSpawn = Date.now();
         }
@@ -132,16 +139,16 @@
         }
 
         function createConfetti() {
-            for (let i = 0; i < 180; i++) {
+            for (let i = 0; i < 200; i++) {
                 confetti.push({
                     x: Math.random() * 800,
-                    y: Math.random() * -200,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: Math.random() * 6 + 3,
-                    size: Math.random() * 9 + 6,
+                    y: Math.random() * -300,
+                    vx: (Math.random() - 0.5) * 9,
+                    vy: Math.random() * 7 + 4,
+                    size: Math.random() * 10 + 6,
                     color: ['#ff0000','#00ff00','#ffff00','#00ffff','#ff00ff'][Math.floor(Math.random()*5)],
                     rotation: Math.random() * 360,
-                    rotSpeed: (Math.random() - 0.5) * 12
+                    rotSpeed: (Math.random() - 0.5) * 15
                 });
             }
         }
@@ -150,7 +157,6 @@
             if (!gameRunning) return;
 
             const speed = 4.8;
-
             if (keys['KeyX']) ship.y -= speed;
             if (keys['KeyZ']) ship.y += speed;
             if (keys['Space']) ship.x += speed;
@@ -195,7 +201,7 @@
             }
 
             timeLeft -= 1/60;
-            difficulty = 1 + (260 - timeLeft) / 130;
+            difficulty = 1 + (60 - timeLeft) / 40;
 
             if (timeLeft <= 0 && !isWin) { 
                 isWin = true;
@@ -203,7 +209,7 @@
                 return; 
             }
 
-            score = Math.floor((260 - timeLeft) * 52);
+            score = Math.floor((60 - timeLeft) * 58);
             document.getElementById('timer').textContent = Math.ceil(timeLeft) + 's';
             document.getElementById('score').textContent = score.toString().padStart(5, '0');
         }
@@ -212,7 +218,6 @@
             ctx.fillStyle = '#000011';
             ctx.fillRect(0, 0, 800, 600);
 
-            // Stars
             ctx.fillStyle = '#fff';
             for (let i = 0; i < 160; i++) {
                 const x = (i * 29) % 800;
@@ -244,7 +249,6 @@
                 ctx.restore();
             }
 
-            // Particles
             for (let p of particles) {
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.life / 45;
@@ -252,7 +256,6 @@
             }
             ctx.globalAlpha = 1;
 
-            // Confetti
             for (let c of confetti) {
                 ctx.save();
                 ctx.translate(c.x, c.y);
@@ -278,11 +281,10 @@
 
         function endGame() {
             gameRunning = false;
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('starshipHigh', highScore);
-                document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
-            }
+            if (score > highScore) highScore = score;
+            localStorage.setItem('starshipHigh', highScore);
+            document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
+
             document.getElementById('game-result').textContent = "MISSION FAILED";
             document.getElementById('game-result').style.color = "#ff4444";
             document.getElementById('final-score').innerHTML = `SCORE: ${score}<br>HIGH: ${highScore}`;
@@ -293,30 +295,30 @@
 
         function winGame() {
             gameRunning = false;
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('starshipHigh', highScore);
-                document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
-            }
+            if (score > highScore) highScore = score;
+            localStorage.setItem('starshipHigh', highScore);
+            document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
+
             createConfetti();
             
+            const rank = getPirateRank(score);
+
             document.getElementById('game-result').innerHTML = "🎉 MARS REACHED! 🏆";
             document.getElementById('game-result').style.color = "#00ff88";
             document.getElementById('final-score').innerHTML = `
                 TO THE MOON, MARS AND BEYOND!<br><br>
-                YOU ARE NOW A SPACE PIRATE 🏴‍☠️<br><br>
+                ${rank}<br><br>
                 FINAL SCORE: ${score}<br>
                 HIGH SCORE: ${highScore}
             `;
             document.getElementById('game-over-screen').style.display = 'flex';
 
-            // Victory music
+            // Victory sounds
             playSound(400, 150); playSound(600, 200); playSound(800, 250);
             setTimeout(() => playSound(1000, 400), 300);
             setTimeout(() => playSound(1200, 600), 600);
         }
 
-        // Controls
         window.addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'Space') e.preventDefault(); });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
@@ -335,7 +337,6 @@
         });
 
         gameLoop();
-        console.log('%cStarship Mars Gauntlet — Victory Celebration Added!', 'color:#00ff88; font-size:16px');
     </script>
 </body>
 </html>

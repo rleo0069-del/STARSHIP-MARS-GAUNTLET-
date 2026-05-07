@@ -40,8 +40,10 @@
             <h1 style="font-size:38px; color:#ffaa00; margin:-10px 0 30px 0;">MARS GAUNTLET</h1>
             <button id="start-btn" style="margin-top:20px; padding:18px 60px; font-size:24px; background:#cc0000; color:white; border:none; cursor:pointer; box-shadow:0 0 20px #ff0000;">LAUNCH YOUR MISSION</button>
             <div style="margin-top:40px; font-size:14px; line-height:1.6;">
-                ← → or A D : Move Left/Right<br>
-                SPACE : Hold to Boost Up<br><br>
+                X : Rise Up<br>
+                Z : Lower Down<br>
+                SPACE : Move Forward<br>
+                Q : Move Backward<br><br>
                 Survive <strong>4 minutes 20 seconds</strong>
             </div>
             <div style="position:absolute; bottom:25px; font-size:12px; color:#666;">© L.E.O GAMES 2026</div>
@@ -51,7 +53,7 @@
         <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(40,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <h1 id="game-result" style="font-size:42px; color:#ff4444;"></h1>
             <p id="final-score" style="font-size:22px; margin:15px 0;"></p>
-            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">TRY AGAIN</button>
+            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">TRY YOUR LUCK AGAIN</button>
         </div>
     </div>
 
@@ -59,7 +61,7 @@
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
         
-        let ship = { x: 120, y: 300, vy: 0, width: 48, height: 28 };
+        let ship = { x: 150, y: 300, width: 48, height: 32 };
         let asteroids = [];
         let score = 0;
         let timeLeft = 260;
@@ -69,8 +71,8 @@
         let difficulty = 1;
 
         function resetGame() {
+            ship.x = 150;
             ship.y = 300;
-            ship.vy = 0;
             asteroids = [];
             score = 0;
             timeLeft = 260;
@@ -79,35 +81,34 @@
         }
 
         function spawnAsteroid() {
-            const size = Math.random() * 45 + 28;
+            const size = Math.random() * 45 + 30;
             asteroids.push({
                 x: 850,
                 y: Math.random() * 520 + 40,
                 size: size,
-                speed: 3.2 + Math.random() * 1.8 * difficulty
+                speed: 3.5 + Math.random() * 2.2 * difficulty
             });
         }
 
         function update() {
             if (!gameRunning) return;
 
-            // Gravity + Boost
-            ship.vy += 0.32;
-            if (keys['Space'] || keys[' ']) {
-                ship.vy -= 0.95;
-            }
-            ship.y += ship.vy;
+            const speed = 7;
+
+            // New Controls
+            if (keys['KeyX']) ship.y -= speed;     // X = Rise Up
+            if (keys['KeyZ']) ship.y += speed;     // Z = Lower Down
+            if (keys['Space']) ship.x += speed;    // Space = Forward (Right)
+            if (keys['KeyQ']) ship.x -= speed;     // Q = Backward (Left)
+
+            // Keep ship inside screen
+            ship.x = Math.max(20, Math.min(680, ship.x));
             ship.y = Math.max(40, Math.min(560, ship.y));
 
-            // Horizontal movement
-            if (keys['ArrowLeft'] || keys['a'] || keys['A']) ship.x -= 6.5;
-            if (keys['ArrowRight'] || keys['d'] || keys['D']) ship.x += 6.5;
-            ship.x = Math.max(20, Math.min(680, ship.x));
-
             // Spawn asteroids
-            if (Date.now() - lastSpawn > (650 / difficulty)) {
+            if (Date.now() - lastSpawn > (580 / difficulty)) {
                 spawnAsteroid();
-                if (Math.random() < 0.4) spawnAsteroid(); // double spawn sometimes
+                if (Math.random() < 0.35) spawnAsteroid();
                 lastSpawn = Date.now();
             }
 
@@ -130,14 +131,14 @@
 
             // Timer & Difficulty
             timeLeft -= 1/60;
-            difficulty = 1 + (260 - timeLeft) / 120;
+            difficulty = 1 + (260 - timeLeft) / 110;
 
             if (timeLeft <= 0) {
                 winGame();
                 return;
             }
 
-            score = Math.floor((260 - timeLeft) * 42);
+            score = Math.floor((260 - timeLeft) * 48);
 
             document.getElementById('timer').textContent = Math.ceil(timeLeft) + 's';
             document.getElementById('score').textContent = score.toString().padStart(5, '0');
@@ -147,19 +148,19 @@
             ctx.fillStyle = '#000011';
             ctx.fillRect(0, 0, 800, 600);
 
-            // Background stars
+            // Moving stars
             ctx.fillStyle = '#ffffff';
-            for (let i = 0; i < 120; i++) {
-                const x = (i * 37) % 800;
-                const y = (i * 29 + Date.now() / 80) % 600;
+            for (let i = 0; i < 140; i++) {
+                const x = (i * 31) % 800;
+                const y = (i * 23 + Date.now() / 70) % 600;
                 ctx.fillRect(x, y, 2, 2);
             }
 
             // Ship
             ctx.fillStyle = '#bbbbbb';
             ctx.fillRect(ship.x, ship.y, ship.width, ship.height);
-            ctx.fillStyle = '#ff6600';
-            ctx.fillRect(ship.x - 10, ship.y + 6, 18, 14); // thruster
+            ctx.fillStyle = '#ff8800';
+            ctx.fillRect(ship.x - 12, ship.y + 8, 20, 16); // thruster
 
             // Asteroids
             ctx.fillStyle = '#666666';
@@ -215,9 +216,8 @@
             startGame();
         });
 
-        // Auto-start loop
         gameLoop();
-        console.log('%cStarship Mars Gauntlet v2 - Fixed & Improved!', 'color:#ff0000; font-size:14px');
+        console.log('%cStarship Mars Gauntlet - Controls Updated!', 'color:#ff0000; font-size:14px');
     </script>
 </body>
 </html>

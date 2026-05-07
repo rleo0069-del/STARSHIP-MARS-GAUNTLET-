@@ -35,10 +35,10 @@
         <div id="start-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,20,0.95); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <h1 style="font-size:42px; color:#FF0000;">STARSHIP</h1>
             <h1 style="font-size:36px; color:#ffaa00; margin-top:-10px;">MARS GAUNTLET</h1>
-            <button id="start-btn" style="margin-top:40px; padding:16px 55px; font-size:22px; background:#cc0000; color:white; border:none; cursor:pointer;">LAUNCH YOUR MISSION</button>
+            <button id="start-btn" style="margin-top:40px; padding:16px 55px; font-size:22px; background:#cc0000; color:white; border:none; cursor:pointer;">LAUNCH MISSION</button>
             <div style="margin-top:30px; font-size:13px;">
                 ← → or A D : Move Left/Right<br>
-                SPACE : Hold to Boost her Up<br><br>
+                SPACE : Hold to Boost Up<br><br>
                 Survive 4 minutes 20 seconds
             </div>
             <div style="position:absolute; bottom:20px; font-size:11px; color:#666666;">
@@ -49,7 +49,7 @@
         <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(40,0,0,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
             <h1 style="font-size:42px; color:#ff4444;">MISSION HAS FAILED</h1>
             <p id="final-score" style="font-size:22px; margin:15px 0;"></p>
-            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">DARE TO TRY AGAIN</button>
+            <button id="restart-btn" style="padding:15px 50px; font-size:20px; background:#aa0000; color:white; border:none; cursor:pointer;">TRY AGAIN</button>
         </div>
     </div>
 
@@ -88,16 +88,13 @@
             // Gravity
             ship.vy += 0.28;
             
-            // === SHIP MOVEMENT ===
-
-            // BOOST - More reliable check
-        if (keys['Space'] || keys[' '] || keys['space']) {
-        ship.vy -= 0.92;                // Stronger boost
-    }
-
-        ship.y += ship.vy;
-        ship.y = Math.max(30, Math.min(570, ship.y));
-
+            // BOOST - Improved detection
+            if (keys['Space'] || keys[' '] || keys['space']) {
+                ship.vy -= 0.88;        // Strong upward boost
+            }
+            
+            ship.y += ship.vy;
+            ship.y = Math.max(30, Math.min(570, ship.y));
             
             // Left / Right movement
             if (keys['ArrowLeft'] || keys['a'] || keys['A']) ship.x -= 5;
@@ -173,13 +170,13 @@
         
         function endGame() {
             gameRunning = false;
-            document.getElementById('final-score').innerHTML = `FINAL SCORE: ${score}<br>You didn't make it...`;
+            document.getElementById('final-score').innerHTML = `FINAL SCORE: ${score}<br>Sorry you didn't make it...`;
             document.getElementById('game-over-screen').style.display = 'flex';
         }
         
         function winGame() {
             gameRunning = false;
-            document.getElementById('final-score').innerHTML = `🎉 YOU REACHED MARS! 🎉<br>FINAL SCORE: ${score}`;
+            document.getElementById('final-score').innerHTML = `🎉 YES YOU REACHED MARS! 🎉<br>FINAL SCORE: ${score}`;
             document.getElementById('game-over-screen').style.display = 'flex';
         }
         

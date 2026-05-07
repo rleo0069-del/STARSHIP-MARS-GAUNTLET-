@@ -27,7 +27,7 @@
         <canvas id="game" width="800" height="600"></canvas>
         
         <div style="position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-size:18px; text-shadow: 0 0 10px black;">
-            <div>TIME: <span id="timer">1:00</span></div>
+            <div>TIME: <span id="timer">:20</span></div>
             <div>SCORE: <span id="score">00000</span></div>
             <div>HIGH: <span id="highscore">00000</span></div>
         </div>
@@ -68,7 +68,7 @@
         let particles = [];
         let confetti = [];
         let score = 0, highScore = localStorage.getItem('starshipHigh') || 0;
-        let timeLeft = 30;           // ← Changed to 30 seconds
+        let timeLeft = 20;           // ← Changed to 20 seconds
         let gameRunning = false;
         let keys = {};
         let lastSpawn = 0;
@@ -117,7 +117,7 @@
         function resetGame() {
             ship.x = 150; ship.y = 300;
             asteroids = []; particles = []; confetti = [];
-            score = 0; timeLeft = 30; difficulty = 1;
+            score = 0; timeLeft = 20; difficulty = 1;
             isWin = false;
             lastSpawn = Date.now();
         }
@@ -200,8 +200,8 @@
                 if (c.y > 650) confetti.splice(i, 1);
             }
 
-            timeLeft -= 1/30;
-            difficulty = 1 + (30 - timeLeft) / 40;
+            timeLeft -= 1/20;
+            difficulty = 1 + (20 - timeLeft) / 10;
 
             if (timeLeft <= 0 && !isWin) { 
                 isWin = true;
@@ -209,7 +209,7 @@
                 return; 
             }
 
-            score = Math.floor((30 - timeLeft) * 28);
+            score = Math.floor((20 - timeLeft) * 18);
             document.getElementById('timer').textContent = Math.ceil(timeLeft) + 's';
             document.getElementById('score').textContent = score.toString().padStart(5, '0');
         }

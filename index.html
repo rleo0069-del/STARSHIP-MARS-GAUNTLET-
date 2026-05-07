@@ -88,13 +88,21 @@
             // Gravity
             ship.vy += 0.28;
             
-            // BOOST - Improved detection
-            if (keys['Space'] || keys[' '] || keys['space']) {
-                ship.vy -= 0.88;        // Strong upward boost
-            }
-            
-            ship.y += ship.vy;
-            ship.y = Math.max(30, Math.min(570, ship.y));
+            // === SHIP MOVEMENT ===
+ship.vy += 0.28;                    // Gravity (pulls down)
+
+// BOOST - More reliable check
+if (keys['Space'] || keys[' '] || keys['space']) {
+    ship.vy -= 0.92;                // Stronger boost
+}
+
+ship.y += ship.vy;
+ship.y = Math.max(30, Math.min(570, ship.y));
+
+// Left / Right movement
+if (keys['ArrowLeft'] || keys['a'] || keys['A']) ship.x -= 5;
+if (keys['ArrowRight'] || keys['d'] || keys['D']) ship.x += 5;
+ship.x = Math.max(20, Math.min(720, ship.x));
             
             // Left / Right movement
             if (keys['ArrowLeft'] || keys['a'] || keys['A']) ship.x -= 5;

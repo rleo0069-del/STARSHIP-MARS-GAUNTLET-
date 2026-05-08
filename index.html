@@ -346,7 +346,7 @@
         function resizeCanvas() {
             const container = document.getElementById('container');
             let scale = Math.min(window.innerWidth / 800, window.innerHeight / 620);
-            if (isMobile) scale = Math.min(scale * 1.28, 1.55);   // Bigger on phones
+            if (isMobile) scale = Math.min(scale * 3.28, 4.55);   // Bigger on phones
             container.style.transform = `scale(${scale})`;
             container.style.transformOrigin = 'top left';
         }

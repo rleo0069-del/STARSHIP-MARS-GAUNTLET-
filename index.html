@@ -18,15 +18,15 @@
             position: relative;
             width: 800px;
             max-width: 100%;
+            box-shadow: 0 0 60px #ff0000;
         }
         canvas { 
-            border: 6px solid #ff4400; 
-            box-shadow: 0 0 60px #ff0000; 
-            image-rendering: pixelated; 
+            display: block;
             width: 100%;
             height: auto;
+            image-rendering: pixelated;
+            border: 6px solid #ff4400;
             touch-action: none;
-            display: block;
         }
         button { 
             background:rgba(255,60,0,0.9); color:white; border:3px solid #ff8800; 
@@ -54,7 +54,7 @@
             <div style="position:absolute; bottom:25px; font-size:12px; color:#666;">© L.E.O GAMES 2026</div>
         </div>
 
-        <!-- Game Over / Win -->
+        <!-- Game Over -->
         <div id="game-over-screen" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(20,0,0,0.97); display:none; flex-direction:column; justify-content:center; align-items:center; text-align:center; z-index:20;">
             <h1 id="game-result" style="font-size:52px; margin:10px 0 20px;"></h1>
             <p id="final-score" style="font-size:24px; line-height:1.8;"></p>
@@ -67,7 +67,7 @@
             <button id="resume-btn" style="margin-top:30px; padding:15px 50px; font-size:20px;">DARE TO TRY AGAIN</button>
         </div>
 
-        <!-- Touch Controls -->
+        <!-- Touch Controls (only visible during gameplay) -->
         <div id="touch-controls" style="position:absolute; bottom:80px; left:0; right:0; display:none; justify-content:space-between; padding:0 20px; pointer-events:none; z-index:30;">
             <div style="pointer-events:auto; display:flex; gap:15px;">
                 <button id="left-btn" style="width:70px;height:70px;font-size:32px;background:rgba(0,0,0,0.6);border:3px solid #ff8800;">←</button>
@@ -77,7 +77,7 @@
             <div></div>
         </div>
 
-        <!-- Extra Mobile Buttons -->
+        <!-- Bottom buttons -->
         <div style="position:absolute; bottom:15px; right:15px; display:flex; gap:8px; z-index:30;">
             <button id="fullscreen-btn" style="display:none; padding:10px 16px; font-size:14px;">FULL SCREEN</button>
             <button id="mute-btn">🔊</button>
@@ -86,6 +86,7 @@
     </div>
 
     <script>
+        // === GAME CODE (same as before, fully working) ===
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
         
@@ -146,9 +147,7 @@
         }
 
         function createExplosion(x, y) {
-            for (let i = 0; i < 40; i++) {
-                particles.push({ x, y, vx: (Math.random()-0.5)*13, vy: (Math.random()-0.5)*13, life: 50, color: Math.random()>0.5?'#ff8800':'#ffff00' });
-            }
+            for (let i = 0; i < 40; i++) particles.push({ x, y, vx: (Math.random()-0.5)*13, vy: (Math.random()-0.5)*13, life: 50, color: Math.random()>0.5?'#ff8800':'#ffff00' });
             playSound(120, 600, 'sawtooth', 0.6);
         }
 
@@ -172,36 +171,26 @@
             ship.y = Math.max(40, Math.min(560, ship.y));
 
             if (Date.now() - lastSpawn > (620 / difficulty)) {
-                spawnAsteroid(); 
-                if (Math.random() < 0.45) spawnAsteroid(); 
-                lastSpawn = Date.now();
+                spawnAsteroid(); if (Math.random() < 0.45) spawnAsteroid(); lastSpawn = Date.now();
             }
 
             for (let i = asteroids.length-1; i >= 0; i--) {
                 const a = asteroids[i]; a.x -= a.speed; a.angle += a.spin || 0;
-                if (!shieldActive && a.x < ship.x + ship.width && a.x + a.size > ship.x && 
-                    a.y < ship.y + ship.height && a.y + a.size > ship.y) {
-                    createExplosion(ship.x + 25, ship.y + 18); 
-                    endGame(); 
-                    return;
+                if (!shieldActive && a.x < ship.x + ship.width && a.x + a.size > ship.x && a.y < ship.y + ship.height && a.y + a.size > ship.y) {
+                    createExplosion(ship.x + 25, ship.y + 18); endGame(); return;
                 }
                 if (a.x < -80) asteroids.splice(i,1);
             }
 
             for (let i = particles.length-1; i >= 0; i--) { 
-                const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; p.vx*=0.96; p.vy*=0.96; 
-                if (p.life <= 0) particles.splice(i,1); 
+                const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; p.vx*=0.96; p.vy*=0.96; if (p.life <= 0) particles.splice(i,1); 
             }
             for (let i = confetti.length-1; i >= 0; i--) { 
-                const c = confetti[i]; c.x += c.vx; c.y += c.vy; c.rotation += c.rotSpeed; c.vy += 0.18; 
-                if (c.y > 650) confetti.splice(i,1); 
+                const c = confetti[i]; c.x += c.vx; c.y += c.vy; c.rotation += c.rotSpeed; c.vy += 0.18; if (c.y > 650) confetti.splice(i,1); 
             }
 
-            if (shieldActive) shieldTime--; 
-            if (shieldTime <= 0) shieldActive = false;
-
-            timeLeft -= 1/60; 
-            difficulty = 1 + (60 - timeLeft)/50;
+            if (shieldActive) shieldTime--; if (shieldTime <= 0) shieldActive = false;
+            timeLeft -= 1/60; difficulty = 1 + (60 - timeLeft)/50;
             if (timeLeft <= 0 && !isWin) { isWin = true; winGame(); return; }
 
             score = Math.floor((60 - timeLeft) * 58);
@@ -217,21 +206,18 @@
                 ctx.fillRect(x, y, 1.5, 1.5);
             }
 
-            // Ship
             ctx.save(); ctx.translate(ship.x+26, ship.y+18);
             ctx.fillStyle = '#aaaaaa'; 
             ctx.beginPath(); ctx.moveTo(-24,-18); ctx.lineTo(-8,0); ctx.lineTo(-24,18); ctx.fill();
             ctx.beginPath(); ctx.moveTo(-24,-18); ctx.lineTo(12,0); ctx.lineTo(-24,18); ctx.fill();
             ctx.fillStyle = '#eeeeee'; ctx.fillRect(-24,-10,52,22);
             ctx.fillStyle = shieldActive ? '#00ffff' : '#44ddff'; ctx.fillRect(12,-8,16,17);
-            
             if (keys['Space'] || keys['KeyX'] || keys['KeyZ'] || keys['KeyQ']) {
                 ctx.fillStyle = '#ff2200'; ctx.fillRect(-36,-8,16,18);
                 ctx.fillStyle = '#ffff44'; ctx.fillRect(-40,-5,10,12);
             }
             ctx.restore();
 
-            // Asteroids
             ctx.strokeStyle = '#555'; ctx.lineWidth = 5;
             for (let a of asteroids) {
                 ctx.save(); ctx.translate(a.x + a.size/2, a.y + a.size/2); ctx.rotate(a.angle);
@@ -239,9 +225,7 @@
                 ctx.restore();
             }
 
-            for (let p of particles) { 
-                ctx.fillStyle = p.color; ctx.globalAlpha = p.life/50; ctx.fillRect(p.x,p.y,7,7); 
-            }
+            for (let p of particles) { ctx.fillStyle = p.color; ctx.globalAlpha = p.life/50; ctx.fillRect(p.x,p.y,7,7); }
             ctx.globalAlpha = 1;
 
             for (let c of confetti) {
@@ -254,6 +238,8 @@
 
         function startGame() {
             document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('pause-screen').style.display = 'none';
             resetGame();
             gameRunning = true; paused = false;
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -284,7 +270,7 @@
             document.getElementById('game-over-screen').style.display = 'flex';
         }
 
-        // Keyboard
+        // Controls
         window.addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'Space') e.preventDefault(); if (e.code === 'KeyP') togglePause(); });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
@@ -294,23 +280,16 @@
             document.getElementById('pause-screen').style.display = paused ? 'flex' : 'none';
         }
 
-        // Buttons
         document.getElementById('start-btn').addEventListener('click', startGame);
-        document.getElementById('restart-btn').addEventListener('click', () => { 
-            document.getElementById('game-over-screen').style.display = 'none'; startGame(); 
-        });
-        document.getElementById('resume-btn').addEventListener('click', () => { 
-            paused = false; document.getElementById('pause-screen').style.display = 'none'; 
-        });
+        document.getElementById('restart-btn').addEventListener('click', startGame);
+        document.getElementById('resume-btn').addEventListener('click', () => { paused = false; document.getElementById('pause-screen').style.display = 'none'; });
         document.getElementById('pause-btn').addEventListener('click', togglePause);
         document.getElementById('mute-btn').addEventListener('click', () => {
-            muted = !muted; 
-            document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
-            if (muted) stopBackgroundMusic(); 
-            else if (gameRunning) startBackgroundMusic();
+            muted = !muted; document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
+            if (muted) stopBackgroundMusic(); else if (gameRunning) startBackgroundMusic();
         });
 
-        // === MOBILE FIXES ===
+        // Mobile Touch (same as before)
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (isMobile) {
             document.getElementById('touch-controls').style.display = 'flex';
@@ -342,24 +321,12 @@
             else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
         });
 
-        // Stronger Mobile Scaling
-        function resizeCanvas() {
-            const container = document.getElementById('container');
-            let scale = Math.min(window.innerWidth / 800, window.innerHeight / 620);
-            if (isMobile) scale = Math.min(scale * 3.28, 4.55);   // Bigger on phones
-            container.style.transform = `scale(${scale})`;
-            container.style.transformOrigin = 'top left';
-        }
-        window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
-        resizeCanvas();
-
         document.body.addEventListener('touchstart', () => { 
             if (audioCtx.state === 'suspended') audioCtx.resume(); 
         }, { once: true });
 
         gameLoop();
-        console.log('%cStarship Mars Gauntlet - Android Optimized!', 'color:#00ff88; font-size:16px');
+        console.log('%cStarship Mars Gauntlet - Fixed like Hammer the Rose!', 'color:#00ff88; font-size:16px');
     </script>
 </body>
 </html>

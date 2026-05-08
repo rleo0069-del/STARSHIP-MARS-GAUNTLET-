@@ -50,7 +50,7 @@
             <h1 style="font-size:38px; color:#ffaa00; margin:-10px 0 30px;">MARS GAUNTLET</h1>
             <button id="start-btn" style="padding:20px 70px; font-size:26px; background:#cc0000; box-shadow:0 0 25px #ff0000;">DARE TO LAUNCH</button>
             <div style="margin-top:30px; font-size:14px;">X ↑ Z ↓ SPACE → Q ←<br>Survive <strong>60 seconds</strong></div>
-            <div style="margin-top:15px; font-size:13px; color:#ffcc00;">LANDSCAPE MOBILE</div>
+            <div style="margin-top:15px; font-size:13px; color:#ffcc00;">BEST IN LANDSCAPE FOR MOBILE</div>
             <div style="position:absolute; bottom:25px; font-size:12px; color:#666;">© L.E.O GAMES 2026</div>
         </div>
 
@@ -67,7 +67,7 @@
             <button id="resume-btn" style="margin-top:30px; padding:15px 50px; font-size:20px;">DARE TO TRY AGAIN</button>
         </div>
 
-        <!-- Touch Controls -->
+        <!-- Touch Controls - ONLY on Mobile -->
         <div id="touch-controls" style="position:absolute; bottom:80px; left:0; right:0; display:none; justify-content:space-between; padding:0 20px; pointer-events:none; z-index:30;">
             <div style="pointer-events:auto; display:flex; gap:15px;">
                 <button id="left-btn" style="width:70px;height:70px;font-size:32px;background:rgba(0,0,0,0.6);border:3px solid #ff8800;">←</button>
@@ -100,6 +100,7 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let bgMusic = null;
 
+        // ... [All the sound, reset, spawn, explosion, confetti, update, draw functions are the same as before] ...
         function playSound(freq, duration, type = 'sawtooth', vol = 0.3) {
             if (muted) return;
             try {
@@ -160,7 +161,7 @@
 
         function updateTouchControls() {
             const tc = document.getElementById('touch-controls');
-            tc.style.display = (gameRunning && !paused) ? 'flex' : 'none';
+            tc.style.display = (isMobile && gameRunning && !paused) ? 'flex' : 'none';
         }
 
         function update() {
@@ -284,10 +285,11 @@
             updateTouchControls();
         }
 
-        // Controls
+        // Keyboard
         window.addEventListener('keydown', e => { keys[e.code] = true; if (e.code === 'Space') e.preventDefault(); if (e.code === 'KeyP') togglePause(); });
         window.addEventListener('keyup', e => keys[e.code] = false);
 
+        // Buttons
         document.getElementById('start-btn').addEventListener('click', startGame);
         document.getElementById('restart-btn').addEventListener('click', startGame);
         document.getElementById('resume-btn').addEventListener('click', () => { paused = false; document.getElementById('pause-screen').style.display = 'none'; updateTouchControls(); });
@@ -297,8 +299,9 @@
             if (muted) stopBackgroundMusic(); else if (gameRunning) startBackgroundMusic();
         });
 
-        // Mobile Touch
+        // Mobile detection
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
         if (isMobile) {
             document.getElementById('fullscreen-btn').style.display = 'block';
 
@@ -328,22 +331,12 @@
             else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
         });
 
-        // Landscape fix
-        function resizeCanvas() {
-            const container = document.getElementById('container');
-            container.style.width = '800px';
-            container.style.maxWidth = '100%';
-        }
-        window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 300));
-        resizeCanvas();
-
         document.body.addEventListener('touchstart', () => { 
             if (audioCtx.state === 'suspended') audioCtx.resume(); 
         }, { once: true });
 
         gameLoop();
-        console.log('%cStarship Mars Gauntlet - Start button & Landscape fixed!', 'color:#00ff88; font-size:16px');
+        console.log('%cStarship Mars Gauntlet - Clean Desktop + Mobile!', 'color:#00ff88; font-size:16px');
     </script>
 </body>
 </html>

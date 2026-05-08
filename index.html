@@ -38,7 +38,6 @@
     <div id="container">
         <canvas id="game" width="800" height="600"></canvas>
         
-        <!-- UI overlays (same as before) -->
         <div style="position:absolute; top:15px; left:20px; right:20px; display:flex; justify-content:space-between; font-size:18px; text-shadow:0 0 10px black; z-index:10;">
             <div>TIME: <span id="timer">1:00</span></div>
             <div>SCORE: <span id="score">00000</span></div>
@@ -51,7 +50,7 @@
             <h1 style="font-size:38px; color:#ffaa00; margin:-10px 0 30px;">MARS GAUNTLET</h1>
             <button id="start-btn" style="padding:20px 70px; font-size:26px; background:#cc0000; box-shadow:0 0 25px #ff0000;">DARE TO LAUNCH</button>
             <div style="margin-top:30px; font-size:14px;">X ↑ Z ↓ SPACE → Q ←<br>Survive <strong>60 seconds</strong></div>
-            <div style="margin-top:15px; font-size:13px; color:#ffcc00;">BEST IN LANDSCAPE FOR MOBLE</div>
+            <div style="margin-top:15px; font-size:13px; color:#ffcc00;">BEST IN LANDSCAPE FOR MOBILE</div>
             <div style="position:absolute; bottom:25px; font-size:12px; color:#666;">© L.E.O GAMES 2026</div>
         </div>
 
@@ -87,9 +86,9 @@
     </div>
 
     <script>
-        // ==================== ALL THE GAME CODE (unchanged core) ====================
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
+        
         let ship = { x: 150, y: 300, width: 52, height: 36 };
         let asteroids = [], particles = [], confetti = [];
         let score = 0, highScore = localStorage.getItem('starshipHigh') || 0;
@@ -133,25 +132,27 @@
             return "ROOKIE SPACE PIRATE 🏴‍☠️";
         }
 
-        function resetGame() { /* same as before */ 
+        function resetGame() {
             ship.x = 150; ship.y = 300; asteroids = []; particles = []; confetti = [];
             score = 0; timeLeft = 60; difficulty = 1; isWin = false; shieldActive = false;
             lastSpawn = Date.now();
         }
 
-        function spawnAsteroid() { /* same */ 
+        function spawnAsteroid() {
             const type = Math.random();
             let size = type < 0.4 ? 55 : type < 0.7 ? 22 : 38;
             let speed = type < 0.4 ? 2.2 : type < 0.7 ? 5.5 : 3.8;
             asteroids.push({ x: 850, y: Math.random() * 500 + 50, size, speed: speed * difficulty, spin: (Math.random() - 0.5) * 0.15, angle: 0 });
         }
 
-        function createExplosion(x, y) { /* same */ 
-            for (let i = 0; i < 40; i++) particles.push({ x, y, vx: (Math.random()-0.5)*13, vy: (Math.random()-0.5)*13, life: 50, color: Math.random()>0.5?'#ff8800':'#ffff00' });
+        function createExplosion(x, y) {
+            for (let i = 0; i < 40; i++) {
+                particles.push({ x, y, vx: (Math.random()-0.5)*13, vy: (Math.random()-0.5)*13, life: 50, color: Math.random()>0.5?'#ff8800':'#ffff00' });
+            }
             playSound(120, 600, 'sawtooth', 0.6);
         }
 
-        function createConfetti() { /* same */ 
+        function createConfetti() {
             for (let i = 0; i < 220; i++) {
                 confetti.push({ x: Math.random()*800, y: Math.random()*-300, vx: (Math.random()-0.5)*9, vy: Math.random()*7+4,
                     size: Math.random()*10+6, color: ['#ff0000','#00ff00','#ffff00','#00ffff','#ff00ff'][Math.floor(Math.random()*5)],
@@ -159,7 +160,7 @@
             }
         }
 
-        function update() { /* same logic as previous version */ 
+        function update() {
             if (!gameRunning || paused) return;
             const speed = 4.8;
             if (keys['KeyX']) ship.y -= speed;
@@ -170,21 +171,37 @@
             ship.x = Math.max(20, Math.min(680, ship.x));
             ship.y = Math.max(40, Math.min(560, ship.y));
 
-            if (Date.now() - lastSpawn > (620 / difficulty)) { spawnAsteroid(); if (Math.random() < 0.45) spawnAsteroid(); lastSpawn = Date.now(); }
+            if (Date.now() - lastSpawn > (620 / difficulty)) {
+                spawnAsteroid(); 
+                if (Math.random() < 0.45) spawnAsteroid(); 
+                lastSpawn = Date.now();
+            }
 
             for (let i = asteroids.length-1; i >= 0; i--) {
                 const a = asteroids[i]; a.x -= a.speed; a.angle += a.spin || 0;
-                if (!shieldActive && a.x < ship.x + ship.width && a.x + a.size > ship.x && a.y < ship.y + ship.height && a.y + a.size > ship.y) {
-                    createExplosion(ship.x + 25, ship.y + 18); endGame(); return;
+                if (!shieldActive && a.x < ship.x + ship.width && a.x + a.size > ship.x && 
+                    a.y < ship.y + ship.height && a.y + a.size > ship.y) {
+                    createExplosion(ship.x + 25, ship.y + 18); 
+                    endGame(); 
+                    return;
                 }
                 if (a.x < -80) asteroids.splice(i,1);
             }
 
-            for (let i = particles.length-1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; p.vx*=0.96; p.vy*=0.96; if (p.life <= 0) particles.splice(i,1); }
-            for (let i = confetti.length-1; i >= 0; i--) { const c = confetti[i]; c.x += c.vx; c.y += c.vy; c.rotation += c.rotSpeed; c.vy += 0.18; if (c.y > 650) confetti.splice(i,1); }
+            for (let i = particles.length-1; i >= 0; i--) { 
+                const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--; p.vx*=0.96; p.vy*=0.96; 
+                if (p.life <= 0) particles.splice(i,1); 
+            }
+            for (let i = confetti.length-1; i >= 0; i--) { 
+                const c = confetti[i]; c.x += c.vx; c.y += c.vy; c.rotation += c.rotSpeed; c.vy += 0.18; 
+                if (c.y > 650) confetti.splice(i,1); 
+            }
 
-            if (shieldActive) shieldTime--; if (shieldTime <= 0) shieldActive = false;
-            timeLeft -= 1/60; difficulty = 1 + (60 - timeLeft)/50;
+            if (shieldActive) shieldTime--; 
+            if (shieldTime <= 0) shieldActive = false;
+
+            timeLeft -= 1/60; 
+            difficulty = 1 + (60 - timeLeft)/50;
             if (timeLeft <= 0 && !isWin) { isWin = true; winGame(); return; }
 
             score = Math.floor((60 - timeLeft) * 58);
@@ -192,7 +209,7 @@
             document.getElementById('score').textContent = score.toString().padStart(5, '0');
         }
 
-        function draw() { /* same drawing code */ 
+        function draw() {
             ctx.fillStyle = '#000011'; ctx.fillRect(0,0,800,600);
             ctx.fillStyle = '#fff';
             for (let i = 0; i < 160; i++) {
@@ -200,17 +217,21 @@
                 ctx.fillRect(x, y, 1.5, 1.5);
             }
 
+            // Ship
             ctx.save(); ctx.translate(ship.x+26, ship.y+18);
-            ctx.fillStyle = '#aaaaaa'; ctx.beginPath(); ctx.moveTo(-24,-18); ctx.lineTo(-8,0); ctx.lineTo(-24,18); ctx.fill();
+            ctx.fillStyle = '#aaaaaa'; 
+            ctx.beginPath(); ctx.moveTo(-24,-18); ctx.lineTo(-8,0); ctx.lineTo(-24,18); ctx.fill();
             ctx.beginPath(); ctx.moveTo(-24,-18); ctx.lineTo(12,0); ctx.lineTo(-24,18); ctx.fill();
             ctx.fillStyle = '#eeeeee'; ctx.fillRect(-24,-10,52,22);
             ctx.fillStyle = shieldActive ? '#00ffff' : '#44ddff'; ctx.fillRect(12,-8,16,17);
+            
             if (keys['Space'] || keys['KeyX'] || keys['KeyZ'] || keys['KeyQ']) {
                 ctx.fillStyle = '#ff2200'; ctx.fillRect(-36,-8,16,18);
                 ctx.fillStyle = '#ffff44'; ctx.fillRect(-40,-5,10,12);
             }
             ctx.restore();
 
+            // Asteroids
             ctx.strokeStyle = '#555'; ctx.lineWidth = 5;
             for (let a of asteroids) {
                 ctx.save(); ctx.translate(a.x + a.size/2, a.y + a.size/2); ctx.rotate(a.angle);
@@ -218,7 +239,9 @@
                 ctx.restore();
             }
 
-            for (let p of particles) { ctx.fillStyle = p.color; ctx.globalAlpha = p.life/50; ctx.fillRect(p.x,p.y,7,7); }
+            for (let p of particles) { 
+                ctx.fillStyle = p.color; ctx.globalAlpha = p.life/50; ctx.fillRect(p.x,p.y,7,7); 
+            }
             ctx.globalAlpha = 1;
 
             for (let c of confetti) {
@@ -237,21 +260,26 @@
             startBackgroundMusic();
         }
 
-        function endGame() { /* same */ gameRunning = false; stopBackgroundMusic();
+        function endGame() {
+            gameRunning = false; stopBackgroundMusic();
             if (score > highScore) highScore = score;
             localStorage.setItem('starshipHigh', highScore);
             document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
-            document.getElementById('game-result').textContent = "MISSION FAILED"; document.getElementById('game-result').style.color = "#ff4444";
+            document.getElementById('game-result').textContent = "MISSION FAILED"; 
+            document.getElementById('game-result').style.color = "#ff4444";
             document.getElementById('final-score').innerHTML = `SCORE: ${score}<br>HIGH: ${highScore}`;
             document.getElementById('game-over-screen').style.display = 'flex';
         }
 
-        function winGame() { /* same */ gameRunning = false; stopBackgroundMusic();
-            if (score > highScore) highScore = score; localStorage.setItem('starshipHigh', highScore);
+        function winGame() {
+            gameRunning = false; stopBackgroundMusic();
+            if (score > highScore) highScore = score; 
+            localStorage.setItem('starshipHigh', highScore);
             document.getElementById('highscore').textContent = highScore.toString().padStart(5, '0');
             createConfetti();
             const rank = getPirateRank(score);
-            document.getElementById('game-result').innerHTML = "🎉 MARS REACHED! 🏆"; document.getElementById('game-result').style.color = "#00ff88";
+            document.getElementById('game-result').innerHTML = "🎉 MARS REACHED! 🏆"; 
+            document.getElementById('game-result').style.color = "#00ff88";
             document.getElementById('final-score').innerHTML = `TO THE MOON, MARS AND BEYOND!<br><br>${rank}<br><br>FINAL SCORE: ${score}<br>HIGH SCORE: ${highScore}`;
             document.getElementById('game-over-screen').style.display = 'flex';
         }
@@ -266,17 +294,23 @@
             document.getElementById('pause-screen').style.display = paused ? 'flex' : 'none';
         }
 
-        // Button listeners (same)
+        // Buttons
         document.getElementById('start-btn').addEventListener('click', startGame);
-        document.getElementById('restart-btn').addEventListener('click', () => { document.getElementById('game-over-screen').style.display = 'none'; startGame(); });
-        document.getElementById('resume-btn').addEventListener('click', () => { paused = false; document.getElementById('pause-screen').style.display = 'none'; });
+        document.getElementById('restart-btn').addEventListener('click', () => { 
+            document.getElementById('game-over-screen').style.display = 'none'; startGame(); 
+        });
+        document.getElementById('resume-btn').addEventListener('click', () => { 
+            paused = false; document.getElementById('pause-screen').style.display = 'none'; 
+        });
         document.getElementById('pause-btn').addEventListener('click', togglePause);
         document.getElementById('mute-btn').addEventListener('click', () => {
-            muted = !muted; document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
-            if (muted) stopBackgroundMusic(); else if (gameRunning) startBackgroundMusic();
+            muted = !muted; 
+            document.getElementById('mute-btn').textContent = muted ? '🔇' : '🔊';
+            if (muted) stopBackgroundMusic(); 
+            else if (gameRunning) startBackgroundMusic();
         });
 
-        // Mobile Touch
+        // === MOBILE FIXES ===
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (isMobile) {
             document.getElementById('touch-controls').style.display = 'flex';
@@ -295,34 +329,37 @@
 
             canvas.addEventListener('touchstart', e => {
                 e.preventDefault();
-                if (gameRunning && !paused) { keys['KeyX'] = true; setTimeout(() => keys['KeyX'] = false, 120); }
+                if (gameRunning && !paused) {
+                    keys['KeyX'] = true;
+                    setTimeout(() => keys['KeyX'] = false, 120);
+                }
             });
         }
 
-        // Fullscreen Button
         document.getElementById('fullscreen-btn').addEventListener('click', () => {
             const elem = document.documentElement;
             if (elem.requestFullscreen) elem.requestFullscreen();
             else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
         });
 
-        // Better Responsive Scaling
+        // Stronger Mobile Scaling
         function resizeCanvas() {
             const container = document.getElementById('container');
-            let scale = Math.min(window.innerWidth / 820, window.innerHeight / 680);
-            if (isMobile) scale = Math.min(scale * 1.15, 1.4); // Bigger on phones
+            let scale = Math.min(window.innerWidth / 800, window.innerHeight / 620);
+            if (isMobile) scale = Math.min(scale * 1.28, 1.55);   // Bigger on phones
             container.style.transform = `scale(${scale})`;
             container.style.transformOrigin = 'top left';
         }
         window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 300));
+        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
         resizeCanvas();
 
-        // Audio touch fix
-        document.body.addEventListener('touchstart', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
+        document.body.addEventListener('touchstart', () => { 
+            if (audioCtx.state === 'suspended') audioCtx.resume(); 
+        }, { once: true });
 
         gameLoop();
-        console.log('%cStarship Mars Gauntlet - Bigger Mobile Version!', 'color:#00ff88; font-size:16px');
+        console.log('%cStarship Mars Gauntlet - Android Optimized!', 'color:#00ff88; font-size:16px');
     </script>
 </body>
 </html>

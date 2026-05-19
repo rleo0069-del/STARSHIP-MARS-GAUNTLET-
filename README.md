@@ -6,6 +6,9 @@ You have only one life and exactly 2 minutes to survive. The longer you last, th
 Tap or press SPACE to boost upward. Release to fall. Master the timing, thread the needle between rocks, and keep your Starship in one piece until you finally see the red planet on the horizon.
 Can you make it to Mars?
 
+<img width="318" height="226" alt="image" src="https://github.com/user-attachments/assets/fc70ae50-901b-4f8e-8b80-1c7fc0e47c8d" />
+
+
 STARSHIP: MARS GAUNTLET
 "Two minutes. One life. No second chances."
 You are the commander of SpaceX’s most advanced Starship ever built. Your mission: deliver humanity’s first permanent colony to Mars.
